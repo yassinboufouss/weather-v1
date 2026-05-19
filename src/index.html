@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta http-equiv="Content-Security-Policy"
+    content="default-src 'self';
+             script-src 'self';
+             style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+             font-src 'self' https://fonts.gstatic.com data:;
+             img-src 'self' https://openweathermap.org data: blob:;" />
+  <title>Manga Weather</title>
+
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet" />
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  
+  <div class="title-bar" id="titleBar">
+    <div class="title-bar__left">
+      <div class="app-logo">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" fill="currentColor" opacity=".3"/>
+          <path d="M12 6c-3.31 0-6 2.69-6 6s2.69 6 6 6 6-2.69 6-6-2.69-6-6-6z" fill="currentColor"/>
+        </svg>
+      </div>
+      <span class="app-name">Manga Weather</span>
+    </div>
+    <div class="title-bar__controls">
+      <!-- Theme toggle -->
+      <button class="ctrl-btn ctrl-btn--theme" id="themeToggle" title="Toggle theme">
+        <svg class="icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg class="icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+      <button class="ctrl-btn" id="minBtn" title="Minimize">
+        <svg width="12" height="12" viewBox="0 0 12 12"><rect y="5.5" width="12" height="1" fill="currentColor" rx=".5"/></svg>
+      </button>
+      <button class="ctrl-btn" id="maxBtn" title="Maximize">
+        <svg width="12" height="12" viewBox="0 0 12 12"><rect x=".5" y=".5" width="11" height="11" rx="2" fill="none" stroke="currentColor"/></svg>
+      </button>
+      <button class="ctrl-btn ctrl-btn--close" id="closeBtn" title="Close">
+        <svg width="12" height="12" viewBox="0 0 12 12">
+          <line x1="1" y1="1" x2="11" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="11" y1="1" x2="1" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+
+  <div class="bg-layer" id="bgLayer">
+    <div class="bg-orb bg-orb--1"></div>
+    <div class="bg-orb bg-orb--2"></div>
+    <div class="bg-orb bg-orb--3"></div>
+    <canvas class="weather-canvas" id="weatherCanvas"></canvas>
+  </div>
+
+  
+  <main class="app-container">
+
+    <!-- ── LEFT SIDEBAR ── -->
+    <aside class="sidebar">
+
+      <!-- Search -->
+      <div class="search-wrap">
+        <div class="search-box">
+          <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            type="text"
+            id="searchInput"
+            class="search-input"
+            placeholder="Search city…"
+            autocomplete="off"
+            spellcheck="false"
+          />
+          <button class="search-btn" id="searchBtn" aria-label="Search">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- Location button -->
+        <button class="locate-btn" id="locateBtn" title="Use my location">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"/><path d="M12 1v4M12 19v4M1 12h4M19 12h4"/>
+            <circle cx="12" cy="12" r="10" opacity=".3"/>
+          </svg>
+          <span>My Location</span>
+        </button>
+      </div>
+
+      <!-- Recent Cities -->
+      <div class="recent-section" id="recentSection">
+        <h3 class="section-label">Recent</h3>
+        <ul class="recent-list" id="recentList"></ul>
+      </div>
+
+      <!-- Unit Toggle -->
+      <div class="unit-toggle-wrap">
+        <span class="unit-label">Temperature</span>
+        <div class="unit-toggle" id="unitToggle">
+          <button class="unit-btn active" data-unit="C">°C</button>
+          <button class="unit-btn" data-unit="F">°F</button>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- ── MAIN CONTENT ── -->
+    <section class="content">
+
+      <!-- Loading overlay -->
+      <div class="loader" id="loader">
+        <div class="loader__ring">
+          <div></div><div></div><div></div><div></div>
+        </div>
+        <p class="loader__text">Fetching weather data…</p>
+      </div>
+
+      <!-- Error state -->
+      <div class="error-state" id="errorState" hidden>
+        <div class="error-icon">⚠️</div>
+        <h2 class="error-title" id="errorTitle">Something went wrong</h2>
+        <p class="error-msg" id="errorMsg">Please try again.</p>
+        <button class="retry-btn" id="retryBtn">Retry</button>
+      </div>
+
+      <!-- Welcome / empty state -->
+      <div class="empty-state" id="emptyState">
+        <div class="empty-icon">🌍</div>
+        <h2>Search a city or use your location</h2>
+        <p>Get real-time weather, forecast, and more.</p>
+      </div>
+
+      <!-- Weather dashboard (hidden until data loaded) -->
+      <div class="dashboard" id="dashboard" hidden>
+
+        <!-- ── TOP: Current weather hero ── -->
+        <div class="hero-card glass-card">
+          <div class="hero-left">
+            <div class="location-info">
+              <h1 class="city-name" id="cityName">—</h1>
+              <p class="country-date" id="countryDate">—</p>
+            </div>
+            <div class="temp-block">
+              <span class="temp-value" id="tempValue">—</span>
+              <span class="temp-unit" id="tempUnitDisplay">°C</span>
+            </div>
+            <p class="condition-text" id="conditionText">—</p>
+          </div>
+          <div class="hero-right">
+            <div class="weather-icon-wrap">
+              <img class="weather-icon-main" id="weatherIconMain" src="" alt="weather icon" />
+              <div class="icon-glow" id="iconGlow"></div>
+            </div>
+            <p class="feels-like" id="feelsLike">Feels like —</p>
+          </div>
+        </div>
+
+        <!-- ── STATS ROW ── -->
+        <div class="stats-row">
+          <div class="stat-card glass-card">
+            <div class="stat-icon">💧</div>
+            <div class="stat-info">
+              <span class="stat-value" id="humidity">—</span>
+              <span class="stat-label">Humidity</span>
+            </div>
+          </div>
+          <div class="stat-card glass-card">
+            <div class="stat-icon">💨</div>
+            <div class="stat-info">
+              <span class="stat-value" id="windSpeed">—</span>
+              <span class="stat-label">Wind Speed</span>
+            </div>
+          </div>
+          <div class="stat-card glass-card">
+            <div class="stat-icon">🌅</div>
+            <div class="stat-info">
+              <span class="stat-value" id="sunrise">—</span>
+              <span class="stat-label">Sunrise</span>
+            </div>
+          </div>
+          <div class="stat-card glass-card">
+            <div class="stat-icon">🌇</div>
+            <div class="stat-info">
+              <span class="stat-value" id="sunset">—</span>
+              <span class="stat-label">Sunset</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── 5-DAY FORECAST ── -->
+        <div class="forecast-section glass-card">
+          <h2 class="section-title">5-Day Forecast</h2>
+          <div class="forecast-row" id="forecastRow">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+
+      </div><!-- /dashboard -->
+    </section>
+
+  </main>
+
+  <!-- Severe weather alert toast -->
+  <div class="alert-toast" id="alertToast" hidden>
+    <span class="alert-icon">⚠️</span>
+    <div class="alert-content">
+      <strong id="alertTitle">Severe Weather Alert</strong>
+      <span id="alertMsg"></span>
+    </div>
+    <button class="alert-close" id="alertClose">✕</button>
+  </div>
+
+  <script src="js/config.js"></script>
+  <script src="js/weather.js"></script>
+  <script src="js/canvas.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
